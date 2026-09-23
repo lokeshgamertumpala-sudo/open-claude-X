@@ -1,88 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Black Hole Simulation</title>
     <style>
-        body {
-            background-color: #f0f0f0;
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050509;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-    <canvas id="blackHole" width="800" height="600"></canvas>
+    <canvas id="blackHole"></canvas>
     <script>
-        // Create scene, camera, and renderer
+        const canvas = document.getElementById("blackHole");
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        camera.position.z = 4;
+
         const renderer = new THREE.WebGLRenderer({
-            canvas: document.getElementById("blackHole"),
-            displayContainer: document.body
+            canvas,
+            antialias: true,
+            alpha: true
         });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Add ambient and directional lighting
-        const ambientLight = new THREE.AmbientLight(0x444444);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5);
-        scene.add(directionalLight);
-
-        // Add black hole mesh
         const blackHoleGeometry = new THREE.SphereGeometry(1, 60, 60);
-        const blackHoleMaterial = new THREE.MeshBasicMaterial({
-            color: 0x000000,
-            mapping: THREE.TextureMapping
-        });
+        const blackHoleMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const blackHoleMesh = new THREE.Mesh(blackHoleGeometry, blackHoleMaterial);
         scene.add(blackHoleMesh);
 
-        // Add texture and material to black hole mesh
-        const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load("data:image/png;base64,iVBORw0KGg...".replace(/\\/g, ''));
-        blackHoleMaterial.map = texture;
+        // Generate a valid procedural texture instead of using an incomplete base64 image.
+        const textureCanvas = document.createElement("canvas");
+        textureCanvas.width = textureCanvas.height = 256;
+        const textureContext = textureCanvas.getContext("2d");
+        const gradient = textureContext.createRadialGradient(128, 128, 8, 128, 128, 128);
+        gradient.addColorStop(0, "#000000");
+        gradient.addColorStop(0.45, "#261008");
+        gradient.addColorStop(0.72, "#e05a16");
+        gradient.addColorStop(1, "#080309");
+        textureContext.fillStyle = gradient;
+        textureContext.fillRect(0, 0, 256, 256);
 
-        // Procedural generation of black hole's texture and material
-        const noiseTexture = new THREE.Texture();
-        noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
-        noiseTexture.repeat.set(10, 10);
-        noiseTexture.needsUpdate = true;
-        const noiseMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            map: noiseTexture,
+        const texture = new THREE.CanvasTexture(textureCanvas);
+        const diskMaterial = new THREE.MeshBasicMaterial({
+            map: texture,
             transparent: true,
-            opacity: 0.5
+            side: THREE.DoubleSide
         });
-        const noiseMesh = new THREE.Mesh(blackHoleGeometry, noiseMaterial);
-        scene.add(noiseMesh);
+        const disk = new THREE.Mesh(
+            new THREE.RingGeometry(1.15, 2.2, 128),
+            diskMaterial
+        );
+        disk.rotation.x = Math.PI / 2;
+        scene.add(disk);
 
-        // Addition of other celestial bodies
-        const starGeometry = new THREE.SphereGeometry(0.1, 60, 60);
-        const starMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.5
-        });
+        const starGeometry = new THREE.SphereGeometry(0.1, 24, 24);
+        const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const starMesh = new THREE.Mesh(starGeometry, starMaterial);
         starMesh.position.set(2, 2, 2);
         scene.add(starMesh);
 
-        // Implementation of gravity and motion
+        function resize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height, false);
+        }
+
         function update() {
-            camera.position.z += 0.01;
-            camera.lookAt(scene.position);
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            disk.rotation.z += 0.003;
+            renderer.render(scene, camera);
             requestAnimationFrame(update);
         }
-        update();
 
-        // Creation of a user interface to control the simulation
+        window.addEventListener("resize", resize);
         document.addEventListener("keydown", (event) => {
             if (event.key === "ArrowUp") {
-                camera.position.z += 1;
+                camera.position.z = Math.max(1.5, camera.position.z - 0.25);
             } else if (event.key === "ArrowDown") {
-                camera.position.z -= 1;
+                camera.position.z += 0.25;
             }
         });
+
+        resize();
+        update();
     </script>
 </body>
 </html>
