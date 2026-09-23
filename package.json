@@ -1,0 +1,53 @@
+{
+  "name": "open-claude-x",
+  "version": "1.0.0",
+  "description": "Open Claude X - Merging Claude Code, Codex, and OpenCode with Antigravity File Management and 5-Key Fallback Router for DeepSeek 4.1 Flash",
+  "main": "dist/index.js",
+  "bin": {
+    "open-claude-x": "dist/cli/index.js",
+    "ocx": "dist/cli/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').cpSync('src/ui/public', 'dist/ui/public', {recursive: true, force: true})\"",
+    "start": "node dist/cli/index.js",
+    "dev": "tsx src/cli/index.ts",
+    "ui": "node dist/ui/server.js",
+    "ui:dev": "tsx src/ui/server.ts",
+    "test": "node --test dist/tests/**/*.test.js",
+    "test:dev": "tsx --test src/tests/**/*.test.ts"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "claude-code",
+    "codex",
+    "opencode",
+    "deepseek",
+    "openrouter",
+    "gemini"
+  ],
+  "author": "Open Claude X Team",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "glob": "^11.0.0",
+    "inquirer": "^10.1.8",
+    "node": "^26.9.0",
+    "node-fetch": "^3.3.2",
+    "ora": "^8.1.0",
+    "three": "^0.186.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.5",
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.1",
+    "typescript": "^5.9.3"
+  }
+}
